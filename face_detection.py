@@ -6,6 +6,8 @@ from sklearn import svm
 import image_process as ip
 import time
 from nms import non_max_suppression_slow as nms
+from sklearn.ensemble import AdaBoostClassifier
+
 
 def extract_hog(images):
         res_im = HOG.resizeImages(images)
@@ -20,7 +22,7 @@ def gather_data(px, py, nx, ny):
 
 
 def train_svm(feature, label, n_train_set):
-        clf = svm.SVC(probability=True)
+        clf = AdaBoostClassifier(svm.SVC(probability=True,kernel='linear'),n_estimators=50)
         clf.fit(feature, label)
 
         #false_positive = []
@@ -76,7 +78,7 @@ if __name__ == "__main__":
 
         count = 0.
 
-        for idx, image in enumerate(p_test_images):
+        for idx, image in enumerate(n_test_images):
 
                 scale = 0
                 detections = []
@@ -118,7 +120,7 @@ if __name__ == "__main__":
                 print "progression: {}%".format((count / len(p_test_images))*100)
                 predictions.append(single_pred)
 
-        print predictions, np.array(predictions).shape, len(predictions[predictions==1])/len(predictions)
+        print predictions, np.array(predictions).shape, float(predictions.count(0))/len(predictions)
 
 
                                 #print model.decision_function(test_x)
