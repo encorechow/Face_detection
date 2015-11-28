@@ -117,7 +117,7 @@ if __name__ == "__main__":
                       #  cv2.waitKey(0)
                         scale += 1
                 count += 1.
-                print "progression: {}%".format((count / len(p_test_images))*100)
+                print "progression: {}%".format((count / len(n_test_images))*100)
                 predictions.append(single_pred)
 
         print predictions, np.array(predictions).shape, float(predictions.count(0))/len(predictions)
