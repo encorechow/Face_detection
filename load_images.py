@@ -18,7 +18,7 @@ def load(directory):
                                         filename[-4:len(filename)] == '.jpg' or\
                                         filename[-4:len(filename)] == '.png':
                                         images.append(_loadi(os.path.join(dirpath, filename)))
-                return images
+                return np.array(images)
         except:
                 print "directory does not exist"
 

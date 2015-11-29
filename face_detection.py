@@ -21,65 +21,43 @@ def gather_data(px, py, nx, ny):
 
 
 
-def train_svm(feature, label, n_train_set):
-        clf = AdaBoostClassifier(svm.SVC(probability=True,kernel='linear'),n_estimators=50)
+def train_svm(feature, label):
+        clf = AdaBoostClassifier(svm.SVC(probability=True,kernel='linear'),n_estimators=20)
         clf.fit(feature, label)
-
-        #false_positive = []
-
-        #for image in n_train_set:
-        #        for ri in ip.pyramid(image, pyramid_scale = 1.25):
-        #                for (x, y, window) in ip.sliding_window(ri, stepSize=16, windowSize=(64,64)):
-        #                        if window.shape[0] != minWinSize[1] or window.shape[1] != minWinSize[0]:
-        #                                continue
-        #                        test_x = np.array(HOG.HOG(window)).reshape(1,-1)
-        #                        predict_y = clf.predict(test_x)
-
-        #                        if predict_y == 1:
-        #                                false_positive.append(test_x[0])
-
-        #false_positive_label = np.zeros(len(false_positive))
-
-        #new_feature = np.append(feature, np.array(false_positive), axis=0)
-        #new_label = np.append(label, false_positive_label)
-
-        #new_clf = svm.SVC(probability=True)
-        #new_clf.fit(new_feature, new_label)
         return clf
 
 if __name__ == "__main__":
 
         minWinSize = [64, 64]
 
-        p_images = li.load("orl_faces")
-        n_images = li.load("background")
-        #p_test_images = li.load("positive_test_images")
-        p_test_images = li.load("test")
+        p_images = li.load("positive_train_images")
+        n_images = li.load("negative_train_images")
+        p_test_images = li.load("positive_test_images")
         n_test_images = li.load("negative_test_images")
 
         test_images = np.append(p_test_images, n_test_images, axis=0)
 
         px = np.array(extract_hog(p_images))
         nx = np.array(extract_hog(n_images))
+
         py = np.ones(len(p_images))
         ny = np.zeros(len(n_images))
 
-        #test_px = np.array(extract_hog(p_test_images))
-        #test_nx = np.array(extract_hog(n_test_images))
         test_py = np.ones(len(p_test_images))
         test_ny = np.zeros(len(n_test_images))
 
+        test_y = np.append(test_py, test_ny)
 
         x, y = gather_data(px, py, nx, ny)
 
-        model = train_svm(x, y, n_images)
+
+        model = train_svm(x, y)
 
         predictions = []
 
         count = 0.
 
-        for idx, image in enumerate(n_test_images):
-
+        for idx, image in enumerate(test_images):
                 scale = 0
                 detections = []
                 single_pred = 0
@@ -93,13 +71,14 @@ if __name__ == "__main__":
                                 predict_y = model.predict(test_x)
 
                                 if predict_y == 1:
-                     #                   print "Detection: location -> {} {}".format(x, y)
-                     #                   print "Scale = {} **** Confidence Score {}\n".format(scale, model.decision_function(test_x))
+                       #                 print "Detection: location -> {} {}".format(x, y)
+                       #                 print "Scale = {} **** Confidence Score {}\n".format(scale, model.decision_function(test_x))
                                         detections.append((x, y, x + 64, y + 64))
                                         current_d.append(detections[-1])
                                         single_pred = 1
 
 
+                      #uncomment this part to see detections on images ↓↓
 
                       #          clone = ri.copy()
                       #          for (x1, y1, x2, y2) in current_d:
@@ -115,25 +94,16 @@ if __name__ == "__main__":
                       #          cv2.rectangle(nms_clone, (startX, startY), (endX, endY), (0,0,255),thickness=2)
                       #  cv2.imshow("apply non maximum suppression", nms_clone)
                       #  cv2.waitKey(0)
+
+                      #uncomment this part to see detections on images ↑↑
                         scale += 1
                 count += 1.
-                print "progression: {}%".format((count / len(n_test_images))*100)
+                print "progression: {}%".format((count / len(test_images))*100)
                 predictions.append(single_pred)
 
-        print predictions, np.array(predictions).shape, float(predictions.count(0))/len(predictions)
+        print predictions, np.array(predictions).shape, float(np.sum(predictions==test_y))/len(predictions)
 
 
-                                #print model.decision_function(test_x)
-
-                                # if predict_y:
-                                #         clone = ri.copy()
-                                #         cv2.rectangle(clone,(x, y), (x + 64, y + 64), (100,100,100) ,2)
-                                #         cv2.imshow("Window", clone)
-                                #         cv2.waitKey(0)
-                                #         time.sleep(0.1)
-
-
-                                #predict testdata
 
 
 
